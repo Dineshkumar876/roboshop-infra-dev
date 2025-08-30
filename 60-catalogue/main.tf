@@ -19,7 +19,7 @@ resource "aws_instance" "catalogue" {
   ami           = local.ami_id
   instance_type = "t3.micro"
   vpc_security_group_ids = [local.catalogue_sg_id]
-  subnet_id = local.private_subnet_ids
+  subnet_id = local.private_subnet_id
   #iam_instance_profile = "EC2RoleToFetchSSMParams"
   tags = merge(
     local.common_tags,
@@ -49,12 +49,10 @@ resource "terraform_data" "catalogue" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/catalogue.sh",
-      "sudo sh /tmp/catalogue.sh catalogue ${var.environment}"
+      "sudo /tmp/catalogue.sh catalogue ${var.environment}"
     ]
   }
 }
-
-
 
 resource "aws_ec2_instance_state" "catalogue" {
   instance_id = aws_instance.catalogue.id
@@ -73,16 +71,3 @@ resource "aws_ami_from_instance" "catalogue" {
     }
   )
 }
-
-# resource "terraform_data" "catalogue_delete" {
-#   triggers_replace = [
-#     aws_instance.catalogue.id
-#   ]
-  
-#   # make sure you have aws configure in your laptop
-#   provisioner "local-exec" {
-#     command = "aws ec2 terminate-instances --instance-ids ${aws_instance.catalogue.id}"
-#   }
-
-#   depends_on = [aws_ami_from_instance.catalogue]
-# }
